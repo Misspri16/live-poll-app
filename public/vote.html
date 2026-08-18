@@ -64,7 +64,7 @@
   </div>
 
   <script>
-    const socket = io('http://localhost:5000');
+    const socket = io('https://live-poll-app-14ng.onrender.com');
 
     const urlParams = new URLSearchParams(window.location.search);
     const roomCode = urlParams.get('room');
@@ -73,7 +73,7 @@
 
     // Fetch initial poll data
     async function loadPoll() {
-      const res = await fetch(`http://localhost:5000/api/poll/${roomCode}`);
+      const res = await fetch(`https://live-poll-app-14ng.onrender.com/api/poll/${roomCode}`);
       const poll = await res.json();
       currentPoll = poll;
       renderPoll(poll);
