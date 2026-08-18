@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Vote</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 60px;
+      background: #f4f4f4;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 450px;
+    }
+    .option-bar {
+      margin: 15px 0;
+    }
+    .option-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+    .bar-bg {
+      background: #eee;
+      border-radius: 5px;
+      overflow: hidden;
+      height: 25px;
+    }
+    .bar-fill {
+      background: #4CAF50;
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s ease;
+      text-align: right;
+      color: white;
+      font-size: 12px;
+      line-height: 25px;
+      padding-right: 5px;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 6px 14px;
+      background: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2 id="question">Loading poll...</h2>
+    <div id="options"></div>
+  </div>
+
+  <script>
+    const socket = io('http://localhost:5000');
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomCode = urlParams.get('room');
+
+    let currentPoll = null;
+
+    // Fetch initial poll data
+    async function loadPoll() {
+      const res = await fetch(`http://localhost:5000/api/poll/${roomCode}`);
+      const poll = await res.json();
+      currentPoll = poll;
+      renderPoll(poll);
+
+      // Join the socket room for live updates
+      socket.emit('join-room', roomCode);
+    }
+
+    function renderPoll(poll) {
+      document.getElementById('question').innerText = poll.question;
+
+      const totalVotes = poll.options.reduce((sum, opt) => sum + opt.votes, 0);
+
+      const optionsDiv = document.getElementById('options');
+      optionsDiv.innerHTML = '';
+
+      poll.options.forEach((opt, index) => {
+        const percent = totalVotes === 0 ? 0 : Math.round((opt.votes / totalVotes) * 100);
+
+        optionsDiv.innerHTML += `
+          <div class="option-bar">
+            <div class="option-label">
+              <span>${opt.text} (${opt.votes} votes)</span>
+              <button onclick="vote(${index})">Vote</button>
+            </div>
+            <div class="bar-bg">
+              <div class="bar-fill" style="width: ${percent}%">${percent}%</div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function vote(optionIndex) {
+      socket.emit('vote', { roomCode, optionIndex });
+    }
+
+    // Listen for live updates from server
+    socket.on('poll-updated', (updatedPoll) => {
+      renderPoll(updatedPoll);
+    });
+
+    loadPoll();
+  </script>
+
+</body>
+</html>

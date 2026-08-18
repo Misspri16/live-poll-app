@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Create a Poll</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 60px;
+      background: #f4f4f4;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 400px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 10px 20px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 18px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Create a Poll</h2>
+    <input type="text" id="question" placeholder="Enter your question">
+    <input type="text" id="option1" placeholder="Option 1">
+    <input type="text" id="option2" placeholder="Option 2">
+    <input type="text" id="option3" placeholder="Option 3 (optional)">
+    <input type="text" id="option4" placeholder="Option 4 (optional)">
+    <button onclick="createPoll()">Create Poll</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    async function createPoll() {
+      const question = document.getElementById('question').value;
+      const options = [
+        document.getElementById('option1').value,
+        document.getElementById('option2').value,
+        document.getElementById('option3').value,
+        document.getElementById('option4').value
+      ].filter(opt => opt.trim() !== '');
+
+      if (!question || options.length < 2) {
+        alert('Please enter a question and at least 2 options');
+        return;
+      }
+
+      const response = await fetch('http://localhost:5000/api/create-poll', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, options })
+      });
+
+      const data = await response.json();
+
+      document.getElementById('result').innerHTML =
+        `Room Code: <strong>${data.roomCode}</strong><br>
+         Share this code with voters!<br>
+         <a href="vote.html?room=${data.roomCode}" target="_blank">Go to live results</a>`;
+    }
+  </script>
+
+</body>
+</html>
