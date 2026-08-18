@@ -5,11 +5,12 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 const Poll = require('./Poll');
+const path = require('path');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 const server = http.createServer(app);
 const io = new Server(server, {
